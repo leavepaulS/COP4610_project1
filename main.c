@@ -33,14 +33,14 @@ void Prompt();
 int main() {
 	char* token = NULL;
 	char* temp = NULL;
-
+  int k;
 	instruction instr;
 	instr.tokens = NULL;
 	instr.numTokens = 0;
 
 	//array of background processes
 	background back[10];
-	for (int k = 0; k < sizeof(back); ++k)
+	for (k = 0; k < sizeof(back); ++k)
 	{
 		back[k].pid = 0;
 		back[k].commandLine = NULL;
@@ -88,17 +88,16 @@ int main() {
 
 			//-------------------------------------------------------------***//
 			//-------------------------------------------------------------***//
-		
-			int i = 0;
-			
+		  int k;
+		  int j;
 			if((instr.tokens)[i] == NULL)
 			{
 				// do nothing
 			}
-			else if (strmp((instr.tokens)[i], "echo") == 0)
+			else if (strcmp((instr.tokens)[i], "echo") == 0)
 			{
 				// call echo built in
-				for (int j = 1; j < instr.numTokens; j++)
+				for (j = 1; j < instr.numTokens; j++)
 				{
 					//for each args after echo
 					if ((instr.tokens)[j][0] == '$')
@@ -111,10 +110,10 @@ int main() {
 						printf("%s ", (instr.tokens)[j]);
 					}
 				}
-				print("\n");
+				printf("\n");
 				c_count++;
 			}
-			else if (strmp((instr.tokens)[i], "cd") == 0)
+			else if (strcmp((instr.tokens)[i], "cd") == 0)
 			{
 				// call cd built in
 				if (instr.numTokens == 1) // no args
@@ -144,11 +143,11 @@ int main() {
 				}
 				
 			}
-			else if (strmp((instr.tokens)[i], "jobs") == 0)
+			else if (strcmp((instr.tokens)[i], "jobs") == 0)
 			{
 				// call jobs built in
 			}
-			else if (strmp((instr.tokens)[i], "exit") == 0)
+			else if (strcmp((instr.tokens)[i], "exit") == 0)
 			{
 				// call exit built in
 
@@ -183,9 +182,9 @@ int main() {
 				else{
 					char* path = PathEnvPath((instr.tokens)[i]);
 					
-					for(int j =0 ; j < instr.numTokens; j++)
+					for(k =0 ; j < instr.numTokens; k++)
 					{
-						if(strmp((instr.tokens)[j], "|") == 0)
+						if(strcmp((instr.tokens)[j], "|") == 0)
 						{
 							
 						}
@@ -269,4 +268,4 @@ void Prompt()
 {
 		printf("%s@%s:%s>", getenv("USER"), getenv("MACHINE"), getenv("PWD"));
 }
-
+ 

@@ -2,7 +2,7 @@
 
 #ifndef utility_H
 #define utility_H
-#include<stdlib.h>
+#include <stdlib.h>
 
 // check if it is external command, return 1 = yes, 0 for no
 int ExternalCommand(const char* str);

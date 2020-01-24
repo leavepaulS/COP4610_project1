@@ -1,19 +1,19 @@
-#include"utility.h"
-#include<stdio.h>
-#include<string.h>
-#include<unistd.h>
+#include "utility.h"
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 int ExternalCommand(const char* str)
 {
 	//build a absolute path based on str
 	char* newStr = (char*)calloc(strlen(str)+2, sizeof(char));
-	strcpy(newStr,"/");
-	strcat(newStr,str);
-	
 	//separate $PATH into substr
 	char* path = getenv("PATH");
 	char* NewPath = (char*)calloc(strlen(path)+1, sizeof(char));
+	strcpy(newStr,"/");
+	strcat(newStr,str);
+	
 	strcpy(NewPath, path);
 	//separated by :
 	char* token = strtok(NewPath, ":");
@@ -38,8 +38,7 @@ int ExternalCommand(const char* str)
 		if(exist = 1)
 		{
 			free(newStr);
-			free(newPath);
-			free(str);
+			free(NewPath);
 			return 1;
 		}
 	  free(newOne);
@@ -47,7 +46,7 @@ int ExternalCommand(const char* str)
 	}
 	// if no file exist, just return the str
 	free(newStr);
-	free(newPath);
+	free(NewPath);
 	return 0;
 }
 
@@ -74,7 +73,7 @@ char* BuildPath(char* str)
 	char* newStr = str;
 	
 	// check for '/'
-	if(strcmp(newStr[0]	,"/") == 0)
+	if(newStr[0] == '/')
 	{  
 		newStr = getenv("PWD");
 		return newStr;
@@ -91,7 +90,7 @@ char* BuildPath(char* str)
 		char* route = getenv("PWD");
 		char* newRoute =  (char*)calloc(strlen(route)+1,sizeof(char));
 		strcpy(newRoute, route);
-		newRoute = Delete(newRoute);
+		newRoute = RemoveDir(newStr);
 		
 		if (strcmp(newRoute,"")==0)
 		{
@@ -104,11 +103,11 @@ char* BuildPath(char* str)
 	}
 	
 // check for . 
-  if(strlen(str) == 2 && str[0] = '.' && str[1] != '.' )
+  if(strlen(str) == 2 && str[0] == '.' && str[1] != '.' )
 	{
 		// need to replace . / for root path
 		if(strcmp(getenv("PWD"), "/") == 0)
-			newStr = Replace(newStr, 0, 1 getenv("PWD"));
+			newStr = Replace(newStr, 0, 1, getenv("PWD"));
 		else 
 		{ // need to replace . only
 			newStr = Replace(newStr, 0 , 0, getenv("PWD"));
@@ -132,9 +131,9 @@ char* BuildPath(char* str)
 			lastSlash = slash;
 			slash = number;
 		}
-		else if(ret_str[it] == '.' && ret_str[it-1] == '.')
+		else if(newStr[number] == '.' && newStr[number-1] == '.')
 		{
-			newStr = Delete(newStr, nunmber-2, number);
+			newStr = Delete(newStr, number-2, number);
 			number = number - 3;
 		}
 		number++;
@@ -146,17 +145,17 @@ char* PathEnvPath(char* str)
 {
 	//build a absolute path based on str
 	char* newStr = (char*)calloc(strlen(str)+2, sizeof(char));
-	strcpy(newStr,"/");
-	strcat(newStr,str);
-	
 	//separate $PATH into substr
 	char* path = getenv("PATH");
 	char* NewPath = (char*)calloc(strlen(path)+1, sizeof(char));
+	strcpy(newStr,"/");
+	strcat(newStr,str);
+	
 	strcpy(NewPath, path);
 	//separated by :
 	char* token = strtok(NewPath, ":");
 	
-	while(toke!= NULL)
+	while(token!= NULL)
 	{
 		
 		char* newOne = (char*)calloc(strlen(token)+1, sizeof(char));
@@ -176,8 +175,7 @@ char* PathEnvPath(char* str)
 		if(exist = 1)
 		{
 			free(newStr);
-			free(newPath);
-			free(str);
+			free(NewPath);
 			return newOne;
 		}
 	  free(newOne);
@@ -185,7 +183,7 @@ char* PathEnvPath(char* str)
 	}
 	// if no file exist, just return the str
 	free(newStr);
-	free(newPath);
+	free(NewPath);
 	return str;
 	
 }
@@ -198,7 +196,7 @@ char* Cat(char* first, const char* second)
   strcpy(first, "/");		
 }
 */
-char* Replace(char* dest;int from, int to, char *source)
+char* Replace(char* dest,int from, int to, char *source)
 {  
   // try to get the new length
 	int delength = to - from +1;
@@ -260,15 +258,15 @@ char* Delete(char* str, size_t from, size_t to)
 		}
 	character = newStr[++i];
 	}
-	line = NULL;
-	return new_line;
+	str = NULL;
+	return newStr;
 }
 
 
 int FileExist(const char* filename)
 {
 	// file exist
-	if(access(filename, F_OK)! = -1)
+	if(access(filename, F_OK) != -1)
 		  return 1;
 	// file not exist
 	else 
