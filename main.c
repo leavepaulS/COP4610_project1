@@ -17,6 +17,13 @@ typedef struct
 	int numTokens;
 } instruction;
 
+//background process struct
+typedef struct
+{
+	int pid;
+	char* commandLine;
+} background;
+
 void addToken(instruction* instr_ptr, char* tok);
 void printTokens(instruction* instr_ptr);
 void clearInstruction(instruction* instr_ptr);
@@ -30,6 +37,14 @@ int main() {
 	instruction instr;
 	instr.tokens = NULL;
 	instr.numTokens = 0;
+
+	//array of background processes
+	background back[10];
+	for (int k = 0; k < sizeof(back); ++k)
+	{
+		back[k].pid = 0;
+		back[k].commandLine = NULL;
+	}
 	
 	//number of instructions executed through shell
     int c_count = 0;
@@ -71,6 +86,117 @@ int main() {
 				addToken(&instr, temp);
 			}
 
+			//-------------------------------------------------------------***//
+			//-------------------------------------------------------------***//
+		
+			int i = 0;
+			
+			if((instr.tokens)[i] == NULL)
+			{
+				// do nothing
+			}
+			else if (strmp((instr.tokens)[i], "echo") == 0)
+			{
+				// call echo built in
+				for (int j = 1; j < instr.numTokens; j++)
+				{
+					//for each args after echo
+					if ((instr.tokens)[j][0] == '$')
+					{
+						++(instr.tokens)[j]; //<- remove $ from token
+						printf("%s ", getenv((instr.tokens)[j]--));
+					}
+					else
+					{
+						printf("%s ", (instr.tokens)[j]);
+					}
+				}
+				print("\n");
+				c_count++;
+			}
+			else if (strmp((instr.tokens)[i], "cd") == 0)
+			{
+				// call cd built in
+				if (instr.numTokens == 1) // no args
+				{
+					//go to $HOME
+					int change = chdir(getenv("HOME"));
+
+					if (change == -1) // 0 = pass, -1 = fail
+						printf("%s: No such directory\n", (instr.tokens)[1]);
+					else
+						setenv("PWD", getenv("HOME"), 1);
+				}
+				else
+				{
+					//convert args to absolute path
+					//
+					//
+					//
+
+					//change directory
+					int change = chdir((instr.tokens)[1]);
+
+					if (change == -1) // 0 = pass, -1 = fail
+						printf("%s: No such directory\n", (instr.tokens)[1]);
+					else
+						setenv("PWD", (instr.tokens)[1], 1);
+				}
+				
+			}
+			else if (strmp((instr.tokens)[i], "jobs") == 0)
+			{
+				// call jobs built in
+			}
+			else if (strmp((instr.tokens)[i], "exit") == 0)
+			{
+				// call exit built in
+
+				//wait for processes to finish
+				//
+				//while jobs array is not empty
+				//	wait
+				//
+
+				printf("Exiting Now!\n");
+				printf("Commands Executed: %d\n", ++c_count);
+
+				//clean up dynamic memory
+				addNull(&instr);
+				clearInstruction(&instr);
+
+				free(token);
+				free(temp);
+
+				token = NULL;
+				temp = NULL;
+
+				//terminate shell
+				break;
+			}
+			else if (ExternalCommand((instr.tokens)[i]) == 1)
+			{
+				if(instr.numTokens == 1)
+				{
+					char* path = PathEnvPath((instr.tokens)[i]);
+				}
+				else{
+					char* path = PathEnvPath((instr.tokens)[i]);
+					
+					for(int j =0 ; j < instr.numTokens; j++)
+					{
+						if(strmp((instr.tokens)[j], "|") == 0)
+						{
+							
+						}
+					}
+				}
+			}
+			else
+			{
+				
+			}
+
 			//free and reset variables
 			free(token);
 			free(temp);
@@ -80,123 +206,11 @@ int main() {
 		
 		} while ('\n' != getchar());    //until end of line is reached
 
-		//-------------------------------------------------------------***//
-		//-------------------------------------------------------------***//
-	  
-		int i = 0;
-		
-		if((instr.tokens)[i] == NULL)
-		{
-			// do nothing
-		}
-		else if (strmp((instr.tokens)[i], "echo") == 0)
-		{
-			// call echo built in
-			for (int j = 1; j < instr.numTokens; j++)
-			{
-				//for each args after echo
-				if ((instr.tokens)[j][0] == '$')
-				{
-					++(instr.tokens)[j]; //<- remove $ from token
-					printf("%s ", getenv((instr.tokens)[j]--));
-				}
-				else
-				{
-					printf("%s ", (instr.tokens)[j]);
-				}
-			}
-			print("\n");
-			c_count++;
-		}
-		else if (strmp((instr.tokens)[i], "cd") == 0)
-		{
-			// call cd built in
-			if (instr.numTokens == 1) // no args
-			{
-				//go to $HOME
-				int change = chdir(getenv("HOME"));
-
-				if (change == -1) // 0 = pass, -1 = fail
-					printf("%s: No such directory\n", (instr.tokens)[1]);
-				else
-					setenv("PWD", getenv("HOME"), 1);
-			}
-			else
-			{
-				//convert args to absolute path
-				//
-				//
-				//
-
-				//change directory
-				int change = chdir((instr.tokens)[1]);
-
-				if (change == -1) // 0 = pass, -1 = fail
-					printf("%s: No such directory\n", (instr.tokens)[1]);
-				else
-					setenv("PWD", (instr.tokens)[1], 1);
-			}
-			
-		}
-		else if (strmp((instr.tokens)[i], "jobs") == 0)
-		{
-			// call jobs built in
-		}
-		else if (strmp((instr.tokens)[i], "exit") == 0)
-		{
-			// call exit built in
-
-			//wait for processes to finish
-    		//
-    		//while jobs array is not empty
-    		//	wait
-			//
-
-			printf("Exiting Now!\n");
-    		printf("Commands Executed: %d\n", ++c_count);
-
-			//clean up dynamic memory
-    		addNull(&instr);
-			clearInstruction(&instr);
-
-			free(token);
-			free(temp);
-
-			token = NULL;
-			temp = NULL;
-
-			//terminate shell
-			break;
-		}
-		else if (ExternalCommand((instr.tokens)[i]) == 1)
-		{
-			if(instr.numTokens == 1)
-			{
-				char* path = PathEnvPath((instr.tokens)[i]);
-			}
-			else{
-				char* path = PathEnvPath((instr.tokens)[i]);
-				
-				for(int j =0 ; j < instr.numTokens; j++)
-				{
-					if(strmp((instr.tokens)[j], "|") == 0)
-					{
-						
-					}
-				}
-			}
-		}
-		else
-		{
-			
-		}
-		
 		addNull(&instr);
 		clearInstruction(&instr);
 
 	}
 	
-
 	return 0;
 }
 
