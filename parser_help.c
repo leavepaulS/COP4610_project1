@@ -188,7 +188,7 @@ void command(char *cmd[], int Tokens)
     
     for (i = 0; i < Tokens-1; i++)
 	{
-		printf("%s\n", cmd[i]);
+		//printf("%s\n", cmd[i]);
 		if (strcmp(cmd[i], ">") == 0)
 		{
 			operator = i;
@@ -213,12 +213,12 @@ void command(char *cmd[], int Tokens)
     
     if (temp == '>')
     {
-		printf("WE DOING OUTPUT REDIRECTION BABY\n");
+		//printf("WE DOING OUTPUT REDIRECTION BABY\n");
         redirOutput(cmd, Tokens);
     }
     else if (temp == '<')
     {
-		printf("WE DOING INPUT REDIRECTION BABY\n");
+		//printf("WE DOING INPUT REDIRECTION BABY\n");
         redirInput(cmd, Tokens);
     }
     else if (temp == '|')
@@ -391,7 +391,8 @@ void redirInput(char* cmd[], int Tokens)
             if (pid == 0)
             {
                 // Changes Output To Output To File
-				dup2(file, STDOUT_FILENO);
+				close(STDIN_FILENO);
+				dup(file);
 				
 				// Will Change To Go To Other Function To See What Operator 
 				// Is Furhtest Left Before Execution
@@ -405,7 +406,8 @@ void redirInput(char* cmd[], int Tokens)
             }
             else if (pid > 0)
             {
-                waitpid(pid, &status, 0);
+               // waitpid(pid, &status, 0);
+				close(file);
             }
             else
             {
