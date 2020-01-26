@@ -29,6 +29,7 @@ void addNull(instruction* instr_ptr);
 void execute(char **cmd);
 void redirOutput(char* cmd[], int Tokens);
 void redirInput(char * cmd[], int Tokens);
+void command(char *cmd[], int Tokens);
 
 
 int main() {
@@ -107,12 +108,10 @@ int main() {
 			int k = 0;
 			for (k = 0; k < instr.numTokens; k++)
 			{
-					cmd[k] = instr.tokens[k];
+				cmd[k] = instr.tokens[k];
 			}
 
-            		//redirInput(cmd, instr.numTokens);
-			//redirOutput(cmd, instr.numTokens);
-			//execute(cmd);
+			command(cmd, instr.numTokens);
 
 			for (k = 0; k < instr.numTokens; k++)
 			{
@@ -181,6 +180,62 @@ void clearInstruction(instruction* instr_ptr)
 	instr_ptr->numTokens = 0;
 }
 
+void command(char *cmd[], int Tokens)
+{
+	int operator;
+	int i = 0;
+    char temp;
+    
+    for (i = 0; i < Tokens-1; i++)
+	{
+		printf("%s\n", cmd[i]);
+		if (strcmp(cmd[i], ">") == 0)
+		{
+			operator = i;
+            temp = '>';
+		}
+        else if (strcmp(cmd[i], "<") == 0)
+		{
+			operator = i;
+            temp = '<';
+		}
+        else if (strcmp(cmd[i], "|") == 0)
+		{
+			operator = i;
+            temp = '|';
+		}
+        else if (strcmp(cmd[i], "&") == 0)
+        {
+            operator = i;
+            temp = '&';
+        }
+	}
+    
+    if (temp == '>')
+    {
+		printf("WE DOING OUTPUT REDIRECTION BABY\n");
+        redirOutput(cmd, Tokens);
+    }
+    else if (temp == '<')
+    {
+		printf("WE DOING INPUT REDIRECTION BABY\n");
+        redirInput(cmd, Tokens);
+    }
+    else if (temp == '|')
+    {
+        
+    }
+    else if (temp == '&')
+    {
+        
+    }
+    else
+    {
+        execute(cmd);
+    }
+}
+
+
 void execute(char **cmd)
 {
 	char bin[] = "/bin/";
@@ -238,6 +293,7 @@ void redirOutput(char* cmd[], int Tokens)
 			{
 				leftCMD[i] = cmd[i];
 			}
+			
 
 			// Attempts To Open (Or Create) Output File In Write Only Mode With User Permissions
 			char fileOutputName[256];
@@ -262,7 +318,7 @@ void redirOutput(char* cmd[], int Tokens)
 				
 				// Will Change To Go To Other Function To See What Operator 
 				// Is Furhtest Left Before Execution
-				execute(leftCMD);
+				command(leftCMD, i+1);
 				
 				// Closes The File And Sets Output To Default
 				close(file);
@@ -314,6 +370,7 @@ void redirInput(char* cmd[], int Tokens)
 			{
 				leftCMD[i] = cmd[i];
 			}
+			
 
 			// Attempts To Open Input File In Read Only Mode
 			char fileInputName[256];
@@ -338,7 +395,7 @@ void redirInput(char* cmd[], int Tokens)
 				
 				// Will Change To Go To Other Function To See What Operator 
 				// Is Furhtest Left Before Execution
-				execute(leftCMD);
+				command(leftCMD, i+1);
 				
 				// Closes The File And Sets Output To Default
 				close(file);
