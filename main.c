@@ -36,7 +36,7 @@ void addNull(instruction* instr_ptr);
 
 void Prompt();
 int Check(instruction* intsr_ptr);
-void Pipe(instruction* intsr_ptr);
+int Pipe(instruction* intsr_ptr);
 
 void execute(char **cmd);
 void redirOutput(char* cmd[], int Tokens);
@@ -59,14 +59,16 @@ int main() {
 		back[k].commandLine = NULL;
 	}
 	
-	//number of instructions executed through shell
+	//number of instructions executed throughout shell
     int c_count = 0;
 
 	while (1) {
+
+		//print staement for each line of shell
 		Prompt();
-		//printf("\nPlease enter an instruction: ");
 
 		// loop reads character sequences separated by whitespace
+		//sets up array of tokens
 		do {
 			//scans for next token and allocates token var to size of scanned token
 			scanf("%ms", &token);
@@ -99,122 +101,6 @@ int main() {
 				addToken(&instr, temp);
 			}
 
-			//-------------------------------------------------------------***//
-			//-------------------------------------------------------------***//
-			int a = 0;
-			int b = 0;
-			if((instr.tokens)[0] == NULL)
-			{
-				// do nothing
-			}
-			else if (strcmp((instr.tokens)[0], "echo") == 0)
-			{
-				// call echo built in
-				for (a = 1; a < instr.numTokens; a++)
-				{
-					//for each args after echo
-					if ((instr.tokens)[a][0] == '$')
-					{
-						++(instr.tokens)[a]; //<- remove $ from token
-						printf("%s ", getenv((instr.tokens)[a]--));
-					}
-					else
-					{
-						printf("%s ", (instr.tokens)[a]);
-					}
-				}
-				printf("\n");
-				c_count++;
-			}
-			else if (strcmp((instr.tokens)[0], "cd") == 0)
-			{
-				// call cd built in
-				if (instr.numTokens == 1) // no args
-				{
-					//go to $HOME
-					int change = chdir(getenv("HOME"));
-
-					if (change == -1) // 0 = pass, -1 = fail
-						printf("%s: No such directory\n", (instr.tokens)[1]);
-					else
-						setenv("PWD", getenv("HOME"), 1);
-				}
-				else
-				{
-					//change directory
-					int change = chdir((instr.tokens)[1]);
-
-					if (change == -1) // 0 = pass, -1 = fail
-						printf("%s: No such directory\n", (instr.tokens)[1]);
-					else
-						setenv("PWD", (instr.tokens)[1], 1);
-				}
-				c_count++;
-			}
-			else if (strcmp((instr.tokens)[0], "jobs") == 0)
-			{
-				// call jobs built in
-			}
-			else if (strcmp((instr.tokens)[0], "exit") == 0)
-			{
-				// call exit built in
-
-				//wait for processes to finish
-				//
-				//while jobs array is not empty
-				//	wait
-				//
-
-				printf("Exiting Now!\n");
-				printf("Commands Executed: %d\n", ++c_count);
-
-				//clean up dynamic memory
-				addNull(&instr);
-				clearInstruction(&instr);
-
-				free(token);
-				free(temp);
-
-				token = NULL;
-				temp = NULL;
-
-				//terminate shell
-				break;
-			}
-			else if (ExternalCommand((instr.tokens)[0]) == 1)
-			{
-				if(instr.numTokens == 1)
-				{
-					char* path = PathEnvPath((instr.tokens)[0]);
-				}
-				else
-				{
-					if (check(instr) == 1) // pipe |
-					{
-
-					}
-					else if (check(instr) == 0) // i/o < >
-					{
-
-					}
-					else //Not built-in and No special characters
-					{
-						char* path = PathEnvPath((instr.tokens)[0]);
-						for(b = 0; b < instr.numTokens; b++)
-						{
-							if(strcmp((instr.tokens)[b], "|") == 0)
-							{
-								
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				printf("%s: Command Not Found.\n", (instr.token)[0]);
-			}
-
 			//free and reset variables
 			free(token);
 			free(temp);
@@ -225,11 +111,133 @@ int main() {
 		} while ('\n' != getchar());    //until end of line is reached
 
 		addNull(&instr);
+
+		//----------------------------------------------------------------***//
+		// - READ TOKEN ARRAY - EXECUTE COMMANDS ------------------------- - //
+		//----------------------------------------------------------------***//
+		int a = 0; //used in echo
+		int b = 0; //used in external command
+		if (strcmp((instr.tokens)[0], "&") == 0)
+		{
+			//move pointer up one place in instr
+			//
+		}
+		if((instr.tokens)[0] == NULL)
+		{
+			// do nothing
+		}
+		else if (strcmp((instr.tokens)[0], "echo") == 0)
+		{
+			// call echo built in
+			for (a = 1; a < instr.numTokens; a++)
+			{
+				//for each args after echo
+				if ((instr.tokens)[a][0] == '$')
+				{
+					++(instr.tokens)[a]; //<- remove $ from token
+					printf("%s ", getenv((instr.tokens)[a]--));
+				}
+				else
+				{
+					printf("%s ", (instr.tokens)[a]);
+				}
+			}
+			printf("\n");
+			c_count++;
+		}
+		else if (strcmp((instr.tokens)[0], "cd") == 0)
+		{
+			// call cd built in
+			if (instr.numTokens == 1) // no args
+			{
+				//go to $HOME
+				int change = chdir(getenv("HOME"));
+
+				if (change == -1) // 0 = pass, -1 = fail
+					printf("%s: No such directory\n", (instr.tokens)[1]);
+				else
+					setenv("PWD", getenv("HOME"), 1);
+			}
+			else
+			{
+				//change directory
+				int change = chdir((instr.tokens)[1]);
+
+				if (change == -1) // 0 = pass, -1 = fail
+					printf("%s: No such directory\n", (instr.tokens)[1]);
+				else
+					setenv("PWD", (instr.tokens)[1], 1);
+			}
+			c_count++;
+		}
+		else if (strcmp((instr.tokens)[0], "jobs") == 0)
+		{
+			// call jobs built in
+			c_count++;
+		}
+		else if (strcmp((instr.tokens)[0], "exit") == 0)
+		{
+			// call exit built in
+
+			//wait for processes to finish
+			//
+			//while jobs array is not empty
+			//	wait
+			//
+
+			printf("Exiting Now!\n");
+			printf("Commands Executed: %d\n", ++c_count);
+
+			//clean up dynamic memory
+			clearInstruction(&instr);
+
+			//terminate shell
+			break;
+		}
+		else if (ExternalCommand((instr.tokens)[0]) == 1)
+		{
+			if(instr.numTokens == 1)
+			{
+				char* path = PathEnvPath((instr.tokens)[0]);
+			}
+			else
+			{
+				if (check(&instr) == 1) // pipe |
+				{
+					int p = Pipe(&instr);
+					if (p == -1)
+					{
+						printf("Invalid Syntax.\n");
+					}
+				}
+				else if (check(&instr) == 0) // i/o < >
+				{
+
+				}
+				else //Not built-in and No special characters
+				{
+					char* path = PathEnvPath((instr.tokens)[0]);
+					for(b = 0; b < instr.numTokens; b++)
+					{
+						if(strcmp((instr.tokens)[b], "|") == 0)
+						{
+							
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			printf("%s: Command Not Found.\n", (instr.tokens)[0]);
+		}
+
 		clearInstruction(&instr);
 
 	}
 	
 	return 0;
+
 }
 
 //reallocates instruction array to hold another token
@@ -292,7 +300,7 @@ void Prompt()
 //if | -> 1
 //if < or > -> 0
 //if not those -> -1
-int Check(instruction* intsr_ptr)
+int Check(instruction* instr_ptr)
 {
 	int i; //index
     for (i = 0; i < instr_ptr->numTokens; ++i)
@@ -310,7 +318,7 @@ int Check(instruction* intsr_ptr)
 }
 
 //Piping function
-void Pipe(instruction* instr_ptr)
+int Pipe(instruction* instr_ptr)
 {
 	//pointers to parts of command
     char **before; // < |
@@ -323,6 +331,10 @@ void Pipe(instruction* instr_ptr)
     {
         if (strcmp(instr_ptr->tokens[i], "|") == 0)
         {
+			if (i + 1 >= instr_ptr->numTokens)
+			{
+				return -1;
+			}
             //set | to NULL
             instr_ptr->tokens[i] = NULL;
 
@@ -350,8 +362,10 @@ void Pipe(instruction* instr_ptr)
         dup2(fd[0], 0);
         close(fd[1]);
 
+		char *aft = PathEnvPath(after[0]);
+
         //cmd after |
-        execvp(after[0], after);
+        execvp(aft, after);
 
         //if exec fails
         printf("exec child failed\n");
@@ -361,12 +375,15 @@ void Pipe(instruction* instr_ptr)
         dup2(fd[1], 1);
         close(fd[0]);
 
+		char *bef = PathEnvPath(before[0]);
+		
         //cmd before |
-        execvp(before[0], before);
+        execvp(bef, before);
 
         //if exec fails
         printf("exec parent failed\n");
 	}
+	return 0;
 }
 
 //-------------------------------------------------------------***//
