@@ -35,8 +35,8 @@ void clearInstruction(instruction* instr_ptr);
 void addNull(instruction* instr_ptr);
 
 void Prompt();
-int Check(instruction* intsr_ptr);
-int Pipe(instruction* intsr_ptr);
+int Check(instruction* instr_ptr);
+int Pipe(instruction* instr_ptr);
 
 void execute(instruction* instr_ptr);
 void redirOutput(instruction* instr_ptr);
@@ -46,11 +46,14 @@ void command(instruction* instr_ptr);
 int main() {
 	char* token = NULL;
 	char* temp = NULL;
-  int k;
+
+  	int k;
+	
 	instruction instr;
 	instr.tokens = NULL;
 	instr.numTokens = 0;
 
+	/*
 	//array of background processes
 	background back[10];
 	for (k = 0; k < sizeof(back); ++k)
@@ -58,6 +61,7 @@ int main() {
 		back[k].pid = 0;
 		back[k].commandLine = NULL;
 	}
+	*/
 	
 	//number of instructions executed throughout shell
     int c_count = 0;
@@ -67,7 +71,8 @@ int main() {
 		//print staement for each line of shell
 		Prompt();
 
-		// loop reads character sequences separated by whitespace
+		// ---------------------------------------------------------------***//
+		// loop reads character sequences separated by whitespace --------***//
 		//sets up array of tokens
 		do {
 			//scans for next token and allocates token var to size of scanned token
@@ -134,8 +139,8 @@ int main() {
 				//for each args after echo
 				if ((instr.tokens)[a][0] == '$')
 				{
-					++(instr.tokens)[a]; //<- remove $ from token
-					printf("%s ", getenv((instr.tokens)[a]--));
+					printf("%s\n", ++(instr.tokens)[a]);
+					printf("%s ", getenv((instr.tokens)[a]));
 				}
 				else
 				{
@@ -202,7 +207,7 @@ int main() {
 			}
 			else
 			{
-				if (check(&instr) == 1) // pipe |
+				if (Check(&instr) == 1) // pipe |
 				{
 					int p = Pipe(&instr);
 					if (p == -1)
@@ -210,7 +215,7 @@ int main() {
 						printf("Invalid Syntax.\n");
 					}
 				}
-				else if (check(&instr) == 0) // i/o < >
+				else if (Check(&instr) == 0) // i/o < >
 				{
 
 				}
