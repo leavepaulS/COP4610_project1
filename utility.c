@@ -176,7 +176,6 @@ char* PathEnvPath(char* str)
 	char* NewPath = (char*)calloc(strlen(path)+1, sizeof(char));
 	strcpy(newStr,"/");
 	strcat(newStr,str);
-	printf("%s\n", newStr);
 	
 	strcpy(NewPath, path);
 	//separated by :
@@ -198,11 +197,9 @@ char* PathEnvPath(char* str)
 		strcat(newOne,newStr);
 		printf("%s\n",newOne);
 		newOne = BuildPath(newOne);
-		printf("%s\n",newOne);
 		// if it is file return 1
 		int exist = FileType(newOne);
-		printf("%d\n", exist);
-		if(exist = 1)
+		if(exist == 1)
 		{
 			free(newStr);
 			free(NewPath);
