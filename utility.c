@@ -36,7 +36,7 @@ int ExternalCommand(const char* str)
 		newOne = BuildPath(newOne);
 		// if it is file return 1
 		int exist = FileType(newOne);
-		if(exist = 1)
+		if(exist == 1)
 		{
 			free(newStr);
 			free(NewPath);
