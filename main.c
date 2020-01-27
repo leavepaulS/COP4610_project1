@@ -9,6 +9,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 typedef struct
 {
@@ -21,6 +26,10 @@ void printTokens(instruction* instr_ptr);
 void clearInstruction(instruction* instr_ptr);
 void addNull(instruction* instr_ptr);
 void Prompt();
+void execute(char **cmd);
+void redirOutput(char* cmd[], int Tokens);
+void redirInput(char * cmd[], int Tokens);
+void command(char *cmd[], int Tokens);
 
 int main() {
 	char* token = NULL;
@@ -185,5 +194,242 @@ void clearInstruction(instruction* instr_ptr)
 void Prompt()
 {
 		printf("%s@%s:%s>", getenv("USER"), getenv("MACHINE"), getenv("PWD"));
+}
+
+void command(char *cmd[], int Tokens)
+{
+	int operator;
+	int i = 0;
+    char temp;
+    
+    for (i = 0; i < Tokens-1; i++)
+	{
+		//printf("%s\n", cmd[i]);
+		if (strcmp(cmd[i], ">") == 0)
+		{
+			operator = i;
+            temp = '>';
+		}
+        else if (strcmp(cmd[i], "<") == 0)
+		{
+			operator = i;
+            temp = '<';
+		}
+        else if (strcmp(cmd[i], "|") == 0)
+		{
+			operator = i;
+            temp = '|';
+		}
+        else if (strcmp(cmd[i], "&") == 0)
+        {
+            operator = i;
+            temp = '&';
+        }
+	}
+    
+    if (temp == '>')
+    {
+		//printf("WE DOING OUTPUT REDIRECTION BABY\n");
+        redirOutput(cmd, Tokens);
+    }
+    else if (temp == '<')
+    {
+		//printf("WE DOING INPUT REDIRECTION BABY\n");
+        redirInput(cmd, Tokens);
+    }
+    else if (temp == '|')
+    {
+        
+    }
+    else if (temp == '&')
+    {
+        
+    }
+    else
+    {
+        execute(cmd);
+    }
+}
+
+
+void execute(char **cmd)
+{
+	char bin[] = "/bin/";
+
+	strcat(bin, cmd[0]);
+
+	int status;
+	pid_t pid = fork();
+
+	if (pid == -1)
+	{
+		exit(1);
+	}
+	else if (pid == 0)
+	{
+		execv(bin, cmd);
+		printf("Problem executing %s\n", bin);
+		exit(1);
+	}
+	else
+	{
+		waitpid(pid, &status, 0);
+	}
+}
+
+void redirOutput(char* cmd[], int Tokens)
+{
+	int i;
+	int operator;
+
+	// Figure Out Where The Farthest Right > Operator Is In Command
+	for (i = 0; i < Tokens-1; i++)
+	{
+		if (strcmp(cmd[i], ">") == 0)
+		{
+			operator = i;
+		}
+	}
+
+	// Checks To See If Output Redirection Has Enough Tokens
+	if (operator == Tokens-1)
+	{
+		printf("Missing Name For Redirection.\n");
+	}
+	else if (Tokens < 3)
+	{
+		printf("Error With Output Redirection.\n");
+	}
+	else
+	{
+			char* leftCMD[256] = {0};
+
+			// Copies All Tokens Left Of The Farthest Right > Operator
+			for (i = 0; i < operator; i++)
+			{
+				leftCMD[i] = cmd[i];
+			}
+			
+
+			// Attempts To Open (Or Create) Output File In Write Only Mode With User Permissions
+			char fileOutputName[256];
+			strcpy(fileOutputName, cmd[Tokens-2]);
+			int standardOut = dup(STDOUT_FILENO);
+			int file = open(fileOutputName, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR);
+
+			// Print Error If Opening Of File Failed
+			if (file < 0)
+			{
+				printf("Error Opening Output File.\n");
+                exit(1);
+			}
+            
+            int status;
+            pid_t pid = fork();
+            
+            if (pid == 0)
+            {
+                // Changes Output To Output To File
+				dup2(file, STDOUT_FILENO);
+				
+				// Will Change To Go To Other Function To See What Operator 
+				// Is Furhtest Left Before Execution
+				command(leftCMD, i+1);
+				
+				// Closes The File And Sets Output To Default
+				close(file);
+				dup2(standardOut, STDOUT_FILENO);
+                
+                exit(1);
+            }
+            else if (pid > 0)
+            {
+                waitpid(pid, &status, 0);
+            }
+            else
+            {
+                printf("Output Redirection Fork Failed\n");
+                exit(1);
+            }
+	}
+}
+
+void redirInput(char* cmd[], int Tokens)
+{
+    int i;
+	int operator;
+
+	// Figure Out Where The Farthest Right < Operator Is In Command
+	for (i = 0; i < Tokens-1; i++)
+	{
+		if (strcmp(cmd[i], "<") == 0)
+		{
+			operator = i;
+		}
+	}
+
+	// Checks To See If Output Redirection Has Enough Tokens
+	if (operator == Tokens-1)
+	{
+		printf("Missing Name For Redirection.\n");
+	}
+	else if (Tokens < 3)
+	{
+		printf("Error With Input Redirection.\n");
+	}
+	else
+	{
+			char* leftCMD[256] = {0};
+
+			// Copies All Tokens Left Of The Farthest Right > Operator
+			for (i = 0; i < operator; i++)
+			{
+				leftCMD[i] = cmd[i];
+			}
+			
+
+			// Attempts To Open Input File In Read Only Mode
+			char fileInputName[256];
+			strcpy(fileInputName, cmd[Tokens-2]);
+			int standardOut = dup(STDOUT_FILENO);
+			int file = open(fileInputName, O_RDONLY);
+
+			// Print Error If Opening Of File Failed
+			if (file < 0)
+			{
+				printf("Error Opening Input File.\n");
+                exit(1);
+			}
+            
+            int status;
+            pid_t pid = fork();
+            
+            if (pid == 0)
+            {
+                // Changes Output To Output To File
+				close(STDIN_FILENO);
+				dup(file);
+				
+				// Will Change To Go To Other Function To See What Operator 
+				// Is Furhtest Left Before Execution
+				command(leftCMD, i+1);
+				
+				// Closes The File And Sets Output To Default
+				close(file);
+				dup2(standardOut, STDOUT_FILENO);
+                
+                exit(1);
+            }
+            else if (pid > 0)
+            {
+               // waitpid(pid, &status, 0);
+				close(file);
+            }
+            else
+            {
+                printf("Input Redirection Fork Failed\n");
+                exit(1);
+            }
+	}
 }
 
