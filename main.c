@@ -26,10 +26,10 @@ void printTokens(instruction* instr_ptr);
 void clearInstruction(instruction* instr_ptr);
 void addNull(instruction* instr_ptr);
 void Prompt();
-void execute(char **cmd);
+void execute(char** cmd);
 void redirOutput(char* cmd[], int Tokens);
 void redirInput(char * cmd[], int Tokens);
-void command(char *cmd[], int Tokens);
+void command(char* cmd[], int Tokens);
 
 int main() {
 	char* token = NULL;
@@ -215,35 +215,15 @@ void command(char *cmd[], int Tokens)
 			operator = i;
             temp = '<';
 		}
-        else if (strcmp(cmd[i], "|") == 0)
-		{
-			operator = i;
-            temp = '|';
-		}
-        else if (strcmp(cmd[i], "&") == 0)
-        {
-            operator = i;
-            temp = '&';
-        }
 	}
     
     if (temp == '>')
     {
-		//printf("WE DOING OUTPUT REDIRECTION BABY\n");
         redirOutput(cmd, Tokens);
     }
     else if (temp == '<')
     {
-		//printf("WE DOING INPUT REDIRECTION BABY\n");
         redirInput(cmd, Tokens);
-    }
-    else if (temp == '|')
-    {
-        
-    }
-    else if (temp == '&')
-    {
-        
     }
     else
     {
