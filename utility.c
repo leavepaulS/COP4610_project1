@@ -195,7 +195,7 @@ char* PathEnvPath(char* str)
 		}
 		
 		strcat(newOne,newStr);
-		printf("%s\n",newOne);
+		
 		newOne = BuildPath(newOne);
 		// if it is file return 1
 		int exist = FileExist(newOne);
