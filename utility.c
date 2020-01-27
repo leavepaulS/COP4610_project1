@@ -198,7 +198,7 @@ char* PathEnvPath(char* str)
 		printf("%s\n",newOne);
 		newOne = BuildPath(newOne);
 		// if it is file return 1
-		int exist = FileType(newOne);
+		int exist = FileExist(newOne);
 		if(exist == 1)
 		{
 			free(newStr);
@@ -315,4 +315,3 @@ int FileType(char* str)
     }
  }
 }
-
