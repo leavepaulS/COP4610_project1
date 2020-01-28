@@ -24,6 +24,16 @@ typedef struct
 	int numTokens;
 } instruction;
 
+typedef struct
+{
+	char* inputCommand;
+	pid_t pidNum;
+    int curStatus;
+    int index;
+}background;
+
+void Jobs(background back_[], int b_size);
+
 void addToken(instruction* instr_ptr, char* tok);
 void printTokens(instruction* instr_ptr);
 void clearInstruction(instruction* instr_ptr);
@@ -617,4 +627,17 @@ int Pipe(instruction* instr_ptr)
 		waitpid(p, &status, 0);
 	}
 	return 0;
+}
+
+void Jobs(background back_[], int b_size)
+{
+    int b;
+    //print current background commands
+    for (b = 0; b < b_size; b++)
+    {
+        if (back_[b].curStatus == 0)
+        {
+            printf("[%d]+ %d   %s\n", back_[b].index, back_[b].pidNum, back_[b].inputCommand);
+        }
+    }
 }
