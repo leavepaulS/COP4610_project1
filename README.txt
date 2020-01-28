@@ -45,14 +45,10 @@ Jared Usher
 Paul Santora
  - Part 8: Pipes
  - Part 10: Built-ins
-   - exit
-   - cd 
-   - echo
 
+Have not completed
  /*
  - Part 9: Background Processing
- - Part 10:
-   - Jobs
  */
  
 
@@ -65,20 +61,26 @@ Paul Santora
  which were provided for us have a 
  column width of 107.
 
-# - KNOWN BUGS - #
+# - KNOWN ISSUES - #
  - cd . 
    if first command entered
    in the shell, directory changes
    to NULL, then fixes itself after 
    next command is entered
+   
  - cd /
    can not go to root directory
+   
  - External Commands
    cannot determine if command
    is external command or not
+   
  - &
    cannot account for & at 
    beginning of command
- 
+   
+ - jobs function
+   is in the code, however we did
+   not finish part 9, background
  
  
