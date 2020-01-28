@@ -70,6 +70,7 @@ Have not completed
    
  - cd /
    can not go to root directory
+   if / enter by itself
    
  - External Commands
    cannot determine if command
