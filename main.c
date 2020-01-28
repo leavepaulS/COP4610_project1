@@ -152,7 +152,22 @@ int main() {
 				if (change == -1) // 0 = pass, -1 = fail
 					printf("%s: No such directory\n", (instr.tokens)[1]);
 				else
-					setenv("PWD", (instr.tokens)[1], 1);
+				{
+					if (strcmp((instr.tokens)[1], "..") == 0)
+					{
+						char* last;
+						char* pwd1;
+						pwd1 = getenv("PWD");
+						last = strrchr(pwd1, '/');
+						last[0] = 0;
+						setenv("PWD", pwd1, 1);
+					}
+					else{
+						setenv("PWD", BuildPath((instr.tokens)[1]), 1);
+					}
+					
+				}
+					
 			}
 			c_count++;
 		}
@@ -180,7 +195,7 @@ int main() {
 			//terminate shell
 			return 0;
 		}
-        else //if (ExternalCommand((instr.tokens)[0]) == 1)
+      else // if (ExternalCommand((instr.tokens)[0]) == 1)
 		{ 
 			if (Check(&instr) == 1) // pipe |
 			{
@@ -199,12 +214,13 @@ int main() {
 				command(&instr);
 			}
 		}
-        /*
-        else
-        {
+        
+       /*else
+        {    
+						printf ("%d\n",ExternalCommand((instr.tokens)[0]));
             printf("%s: Command Not Found.\n", (instr.tokens)[0]);
-        }
-        */
+        }*/
+        
 
 		clearInstruction(&instr);
 	}

@@ -37,17 +37,25 @@ int ExternalCommand(const char* str)
 		// if it is file return 1
 		int exist = FileType(newOne);
 		if(exist == 2)
-		{
+		{ 
+	    free(newOne);
 			free(newStr);
 			free(NewPath);
+			newOne = NULL;
+			newStr = NULL;
+			NewPath = NULL;
+			
 			return 1;
 		}
 	  free(newOne);
+		newOne = NULL;
 		token = strtok(NULL, ":");
 	}
 	// if no file exist, just return the str
 	free(newStr);
 	free(NewPath);
+  newStr = NULL;
+	NewPath = NULL ;
 	return 0;
 }
 
@@ -72,7 +80,12 @@ int Command(char* str)
 char* BuildPath(char* str)
 {
 	char* newStr = str;
-	
+	// check fot ../
+	if((newStr[0] == '/') && (newStr[1] == '.' )&& (newStr[2] == '.'))
+  {
+		char* error = "Cannot move back to last directory";
+		return error;
+	}		
 	// check for '/'
 	if(newStr[0] == '/' && strlen(newStr) == 1)
 	{  
@@ -104,7 +117,7 @@ char* BuildPath(char* str)
 	}
 	
 // check for . 
-  if( (str[0] == '.' && str[1] != '.' && str[1] == '/') || (str[0] != '.' && str[0] != '/' && str[0] != '~') )
+  if( (str[0] == '.' && str[1] != '.' && str[1] == '/') || (str[0] != '.' && str[0] != '/' && str[0] != '~') ||(strlen(str) == 1 && str[0] == '.') )
 	{
 		// need to replace . / for root path
 		if(strcmp(getenv("PWD"), "/") == 0)
@@ -203,6 +216,7 @@ char* PathEnvPath(char* str)
 		{
 			free(newStr);
 			free(NewPath);
+      free(str);
 			return newOne;
 		}
 	  free(newOne);
@@ -248,6 +262,7 @@ char* Replace(char* dest,int from, int to, char *source)
 		else 
 			newStr[i] = dest[m++];
 	}
+	free(dest);
 	return newStr;
 }
 
@@ -285,6 +300,7 @@ char* Delete(char* str, size_t from, size_t to)
 		}
 	character = str[++i];
 	}
+	free(str);
 	str = NULL;
 	return newStr;
 }
