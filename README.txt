@@ -65,5 +65,18 @@ Paul Santora
  which were provided for us have a 
  column width of 107.
 
-
-
+# - KNOWN BUGS - #
+ - cd . 
+   if first command entered
+   in the shell, directory changes
+   to NULL, then fixes itself after 
+   next command is entered
+ - cd /
+   can not go to root directory
+ - External Commands
+   cannot determine if command
+   is external command or not
+ 
+ 
+ 
+ 
