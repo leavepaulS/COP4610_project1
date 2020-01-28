@@ -134,7 +134,7 @@ int main() {
         else if (strcmp((instr.tokens)[0], "cd") == 0)
 		{
 			// call cd built in
-			if (instr.numTokens == 2) // no args
+			if (instr.numTokens == 2 || strcmp((instr.tokens)[1], "~") == 0) // no args
 			{
 				//go to $HOME
 				int change = chdir(getenv("HOME"));
@@ -162,7 +162,8 @@ int main() {
 						last[0] = 0;
 						setenv("PWD", pwd1, 1);
 					}
-					else{
+					else
+					{
 						setenv("PWD", BuildPath((instr.tokens)[1]), 1);
 					}
 					
@@ -185,6 +186,8 @@ int main() {
 			//while jobs array is not empty
 			//	wait
 			//
+			int status;
+			waitpid(-1, &status, 0);
 
 			printf("Exiting Now!\n");
 			printf("Commands Executed: %d\n", ++c_count);
@@ -195,7 +198,7 @@ int main() {
 			//terminate shell
 			return 0;
 		}
-      else // if (ExternalCommand((instr.tokens)[0]) == 1)
+      else //if (ExternalCommand((instr.tokens)[0]) == 1)
 		{ 
 			if (Check(&instr) == 1) // pipe |
 			{
@@ -205,21 +208,22 @@ int main() {
 					printf("Invalid Syntax.\n");
 				}
 			}
-			else if (Check(&instr) == 0) // i/o < >
-			{
-				command(&instr);
-			}
-			else //Not built-in and No special characters
+			else //Not A Built-In Or Deals With IO Redirection
 			{				
 				command(&instr);
 			}
+			
+			c_count++;
 		}
-        
-       /*else
+		/*
+       else
         {    
-						printf ("%d\n",ExternalCommand((instr.tokens)[0]));
+			printf ("%d\n",ExternalCommand((instr.tokens)[0]));
             printf("%s: Command Not Found.\n", (instr.tokens)[0]);
-        }*/
+        }
+		*/
+		
+		
         
 
 		clearInstruction(&instr);
@@ -538,9 +542,13 @@ int Pipe(instruction* instr_ptr)
     char **after;  // | >
 
 	int i; //index
+	
+	//add to command
+	char beforeBin[15] = "/bin/";
+	char afterBin[15] = "/bin/";
 
 	// set pointer locations
-    for (i = 0; i < instr_ptr->numTokens; ++i)
+    for (i = 0; i < instr_ptr->numTokens-1; ++i)
     {
         if (strcmp(instr_ptr->tokens[i], "|") == 0)
         {
@@ -559,42 +567,54 @@ int Pipe(instruction* instr_ptr)
             break;
         }
     }
+	
+	strcat(beforeBin, before[0]);
+	strcat(afterBin, after[0]);
 
 	//set up pipe
     int fd[2];
-    pipe(fd);
+    //pipe(fd);
 
     //works only with one pipe
     pid_t p = fork();
+	int status;
     if (p == -1)
     {
         printf("Fork Failed");
     }
-    else if (p == 0) //child process
-    {
-        dup2(fd[0], 0);
-        close(fd[1]);
+	else if (p == 0)
+	{
+		pipe(fd);
+		if (fork() == 0) //child process
+		{
+			//close(STDOUT_FILENO);
+			dup2(fd[0], 0);
+			close(fd[1]);
+			close(fd[0]);
 
-		char *aft = PathEnvPath(after[0]);
+			//cmd after |
+			execvp(afterBin, after);
+			
+			//if exec fails
+			printf("exec child failed\n");
+		}
+		else //parent process
+		{
+			//close(STDIN_FILENO);
+			dup2(fd[1], 1);
+			close(fd[0]);
+			close(fd[1]);
+			
+			//cmd before |
+			execvp(beforeBin, before);
 
-        //cmd after |
-        execvp(aft, after);
-        
-        //if exec fails
-        printf("exec child failed\n");
-    }
-    else //parent process
-    {
-        dup2(fd[1], 1);
-        close(fd[0]);
-
-		char *bef = PathEnvPath(before[0]);
-		
-        //cmd before |
-        execvp(bef, before);
-
-        //if exec fails
-        printf("exec parent failed\n");
+			//if exec fails
+			printf("exec parent failed\n");
+		}
+	}
+	else
+	{
+		waitpid(p, &status, 0);
 	}
 	return 0;
 }
