@@ -36,7 +36,7 @@ int ExternalCommand(const char* str)
 		newOne = BuildPath(newOne);
 		// if it is file return 1
 		int exist = FileType(newOne);
-		if(exist = 1)
+		if(exist == 2)
 		{
 			free(newStr);
 			free(NewPath);
@@ -74,15 +74,15 @@ char* BuildPath(char* str)
 	char* newStr = str;
 	
 	// check for '/'
-	if(newStr[0] == '/')
+	if(newStr[0] == '/' && strlen(newStr) == 1)
 	{  
 		newStr = getenv("PWD");
 		return newStr;
 	}
 	//check for ~
-	if(newStr[0] == '~')
+	if(newStr[0] == '~' && newStr[1] == '/')
 	{
-		newStr = Replace(newStr, 0, 0 , getenv("Home"));	
+		newStr = Replace(newStr, 0, 0 , getenv("HOME"));	
 	}
 
 // check for ..	
@@ -91,20 +91,20 @@ char* BuildPath(char* str)
 		char* route = getenv("PWD");
 		char* newRoute =  (char*)calloc(strlen(route)+1,sizeof(char));
 		strcpy(newRoute, route);
-		newRoute = RemoveDir(newStr);
+		newRoute = RemoveDir(newRoute);
 		
-		if (strcmp(newRoute,"")==0)
+		/*if (strcmp(newRoute,"")==0)
 		{
 			newStr = Replace(newStr, 0, strlen(newStr)-1, "/");
 			free(newRoute);
 			return newStr;
-		}
+		}*/
 		newStr = Replace(newStr, 0, 1, newRoute);
 		free(newRoute);
 	}
 	
 // check for . 
-  if(strlen(str) == 2 && str[0] == '.' && str[1] != '.' )
+  if( (str[0] == '.' && str[1] != '.' && str[1] == '/') || (str[0] != '.' && str[0] != '/' && str[0] != '~') )
 	{
 		// need to replace . / for root path
 		if(strcmp(getenv("PWD"), "/") == 0)
@@ -116,29 +116,54 @@ char* BuildPath(char* str)
 	}
 	
 	//check for anywhere of . and ..
-	int number = 0;
-	int slash = 0;
-	int lastSlash = 0;
+	size_t number = 1;
+	size_t slash = 0;
+	size_t lastSlash = 0;
 	
-	while(newStr != '\0')
+	while (newStr[number] != '\0')
 	{
-		if((strlen(newStr) >= 2) && newStr[number-1] == '.' && newStr[number] == '/')
+		if (newStr[number] == '.' && newStr[number-1] == '.')
 		{
-			newStr = Delete(newStr, number - 1, number);
+			// check for root
+			if (number > 2)
+			{
+				newStr = Delete(newStr, lastSlash, number); 
+				// must start back at 0 to capture '/' locations
+				number = 0;
+				slash = 0;
+				lastSlash = 0;
+				// empty string, down to root
+				if (strcmp(newStr,"") == 0)
+				{
+					newStr = strcat(newStr, "/");
+					return newStr;
+				}
+			}
+			else if (strlen(newStr) > 3)
+			{
+				newStr = Delete(newStr, number-2, number);
+				number = number - 3;	// will be -1, ++it at end of loop will make 0
+			}
+			else
+			{
+				newStr = Delete(newStr, number-1, number);
+				number = number - 2;
+			}
+		}
+		// check strlen to make sure no invalid memory read
+		else if ((strlen(newStr) >= 2) && newStr[number-1] == '.' && newStr[number] == '/')
+		{
+			newStr = Delete(newStr, number-1, number);
 			number = number - 2;
 		}
-		else if(newStr[number] == '/')
+		else if (newStr[number] == '/')
 		{
 			lastSlash = slash;
 			slash = number;
 		}
-		else if(newStr[number] == '.' && newStr[number-1] == '.')
-		{
-			newStr = Delete(newStr, number-2, number);
-			number = number - 3;
-		}
-		number++;
+		++number;
 	}
+
 	return newStr;
 }
 
@@ -170,10 +195,11 @@ char* PathEnvPath(char* str)
 		}
 		
 		strcat(newOne,newStr);
+		
 		newOne = BuildPath(newOne);
 		// if it is file return 1
-		int exist = FileType(newOne);
-		if(exist = 1)
+		int exist = FileExist(newOne);
+		if(exist == 1)
 		{
 			free(newStr);
 			free(NewPath);
@@ -289,4 +315,3 @@ int FileType(char* str)
     }
  }
 }
-
