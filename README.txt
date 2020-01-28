@@ -76,7 +76,9 @@ Paul Santora
  - External Commands
    cannot determine if command
    is external command or not
- 
+ - &
+   cannot account for & at 
+   beginning of command
  
  
  
