@@ -89,7 +89,7 @@ char* BuildPath(char* str)
 	// check for '/'
 	if(newStr[0] == '/' && strlen(newStr) == 1)
 	{  
-		newStr = getenv("PWD");
+		newStr = "/";
 		return newStr;
 	}
 	//check for ~
