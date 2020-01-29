@@ -69,8 +69,9 @@ Have not completed
    next command is entered
    
  - cd /
-   can not go to root directory
-   if / enter by itself
+   goes to root directory
+   however, PWD does not update
+   correctly to reflect change
    
  - External Commands
    cannot determine if command
